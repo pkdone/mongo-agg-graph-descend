@@ -144,7 +144,7 @@ Define the graphDescend() function ready to be used by an aggregation pipeline:
  * Generate the MongoDB Aggregation expression to descend through a document's nested fields
  * collecting each sub-document into a flattened array of sub-documents in the result. Analogous to
  * MongoDB's $graphLookup Aggregation stage, but operating on each self-contained document in
- * isolation rather than linking different documents together. A.K.A. "flatten document". Most
+ * isolation rather than linking different documents together. Aka. "flatten document". Most
  * parameters match the parameters for $graphLookup. Currently only supports MongoDB version 5+ due
  * to the use of the new $getField operator. However, for earlier versions of MongoDB you can
  * replace $getField in this function's code with @asya999's getField() function which performs the
@@ -152,23 +152,23 @@ Define the graphDescend() function ready to be used by an aggregation pipeline:
  *
  * @param  {string} connectToField   The field in each sub-document which references an array of
                                      child sub-documents
- * @param  {string} [startWith=null] The field at the top level of the document which references
-                                     the first array of child sub-documents number (optional - if
+ * @param  {string} [startWith=null] [OPTIONAL] The field at the top level of the document which
+                                     references the first array of child sub-documents number (if
                                      not specified, connectToField will be used for the top level
-                                     child array field
- * @param  {Number} [maxElements=25] The maximum number of sub-documents to flatten (the resulting
-                                     aggregation expression issues a warning in the aggregation
-                                     output if this number isn't sufficient to allow a nested
-                                     document to be fully descended
- * @param  {Array} [omitFields=[]]   The array of fields to omit from each flattened sub-document
-                                     in the output array
- * @param  {Number} [maxDepth=100]   The maximum depth of documents to descend (this value is 
-                                     automatically limited by this function to a maximum of 100 is
-                                     MongoDB's maximum level of nesting supported fro BSON
-                                     documents
- * @return {string}                  The MongoDB Aggregation expressions which generates the
-                                     flattened array for each nested document flowing through an
-                                     aggregation pipeline
+                                     child array field)
+ * @param  {Number} [maxElements=25] [OPTIONAL] The maximum number of sub-documents to flatten (the
+                                     resulting aggregation expression issues a warning in the 
+                                     aggregation's output if this number isn't sufficient to allow
+                                     a nested document to be fully descended
+ * @param  {Array} [omitFields=[]]   [OPTIONAL] The array of fields to omit from each flattened
+                                     sub-document in the output array
+ * @param  {Number} [maxDepth=100]   [OPTIONAL] The maximum depth of documents to descend (this 
+                                     value is automatically limited by this function to a maximum
+                                     of 100 because this is the maximum level of nesting supported
+                                     by MongoDB for BSON documents
+ * @return {string}                  The MongoDB Aggregation expression which generates the
+                                     flattened array for each document, containing nested 
+                                     sub-documents, flowing through an aggregation pipeline
  */
 function graphDescend(connectToField, startWith=null, maxElements=25, omitFields=[], maxDepth=100) {
   return {
@@ -320,5 +320,9 @@ db.mydata.aggregate(pipeline);
 ```javascript
 db.mydata.explain("executionStats").aggregate(pipeline);
 ```
+
+## TODOs
+* Provide an example that works for MongoDB versions before 5.0
+* Implement an optional parameter which is the equivalent of "restrictSearchWithMatch" used in _$graphLookup_
 
 
