@@ -1,6 +1,6 @@
 # mongo-agg-graph-descend
 
-Provides a JavaScript function to generate a MongoDB Aggregation expression to descend through a document's nested fields collecting each sub-document into a flattened array of array elements in the result. It is analogous to MongoDB's _$graphLookup_ aggregation stage, but operates on each self-contained document in isolation rather than linking different documents together. You can think of this function as the "flatten document" function. Most of the function's parameters match the parameters for _$graphLookup_. Currently the function only supports MongoDB version 5+ due to the use of the new _$getField_ operator. However, for earlier versions of MongoDB you can replace _$getField_ in this function's code with [@asya999](https://twitter.com/asya999)'s [getField() function](https://github.com/asya999/bits-n-pieces/blob/master/scripts/getField.js) which performs the equivalent in older versions of MonogDB.
+Provides a JavaScript function to generate a MongoDB Aggregation expression to descend through a document's nested fields collecting each sub-document into a flattened array of array elements in the result. It is analogous to MongoDB's _$graphLookup_ aggregation stage, but operates on each self-contained document in isolation rather than linking different documents together. You can think of this function as the "flatten document" function. Most of the function's parameters match the parameters for _$graphLookup_. Currently the function only supports MongoDB version 5+ due to the use of the new _$getField_ operator. However, for earlier versions of MongoDB you can replace _$getField_ in this function's code with [@asya999](https://twitter.com/asya999)'s [getField() function](https://github.com/asya999/bits-n-pieces/blob/master/scripts/getField.js) which performs the equivalent in older versions of MongoDB.
 
 For example, imagine there is a MongoDB collection containing documents similar to the following: 
 
@@ -58,7 +58,7 @@ Executing an aggregation pipeline which performs a _$set/$addFields/$project_ op
 ]}
 ```
 
-To test this function, use the [MongoDB Shell](https://docs.mongodb.com/mongodb-shell/) to connect to an existing MongoDB database (with full read/write priviledges) and run the following...
+To test this function, use the [MongoDB Shell](https://docs.mongodb.com/mongodb-shell/) to connect to an existing MongoDB database (with full read/write privileges) and run the following...
 
 
 ## Sample Data Population
@@ -137,7 +137,7 @@ db.mydata.insertMany([
 
 ## Define the 'graphDescend' Function
 
-Load the graphDescend() function definitioninto the MongoDB SHell ready to be used by an aggregation pipeline:
+Load the graphDescend() function definition into the MongoDB Shell ready to be used by an aggregation pipeline:
 
 ```javascript
 /**
