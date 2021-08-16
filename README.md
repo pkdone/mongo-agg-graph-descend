@@ -175,6 +175,8 @@ Load the graphDescend() function definition into the MongoDB Shell ready to be u
                                                pipeline
  */
 function graphDescend(connectToField="children", startWith=null, maxElements=25, omitFields=[], maxDepth=100) {
+  startWith = startWith ? startWith : connectToField;
+  
   return {
     "$let": {
       "vars": {
