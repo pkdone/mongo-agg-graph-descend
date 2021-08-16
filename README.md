@@ -150,7 +150,7 @@ Load the graphDescend() function definition into the MongoDB Shell ready to be u
  * replace $getField in this function's code with @asya999's getField() function which performs the
  * equivalent, at: https://github.com/asya999/bits-n-pieces/blob/master/scripts/getField.js
  *
- * @param {string} ]connectToField="children"] [OPTIONAL] The field in each sub-document which
+ * @param {string} [connectToField="children"] [OPTIONAL] The field in each sub-document which
                                                references an array of child sub-documents (if not
                                                specified, the functon will assume the child array 
                                                field at each level is called 'children')
