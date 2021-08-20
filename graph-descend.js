@@ -8,11 +8,11 @@
  * replace $getField in this function's code with @asya999's getField() function which performs the
  * equivalent, at: https://github.com/asya999/bits-n-pieces/blob/master/scripts/getField.js
  *
- * @param {string} [connectToField="children"] [OPTIONAL] The field in each sub-document which
+ * @param {String} [connectToField="children"] [OPTIONAL] The field in each sub-document which
  *                                             references an array of child sub-documents (if not
  *                                             specified, the functon will assume the child array 
  *                                             field at each level is called 'children')
- * @param {string} [startWith=null]            [OPTIONAL] The field at the top level of the
+ * @param {String} [startWith=null]            [OPTIONAL] The field at the top level of the
  *                                             document which references the first array of child
  *                                             sub-documents number (if not specified,
  *                                             connectToField will be used for the top level child
@@ -29,10 +29,10 @@
  *                                             function to a maximum of 100 because this is the
  *                                             maximum level of nesting supported by MongoDB for 
  *                                             BSON documents
- * @return {string}                            The MongoDB Aggregation expression which generates
- *                                             the flattened array for each document, containing
- *                                             nested sub-documents, flowing through an aggregation
- *                                             pipeline
+ * @return {Object}                            The MongoDB Aggregation JSON expression object which
+ *                                             can generate the flattened array for each document,
+ *                                             containing nested sub-documents, flowing through an
+ *                                             aggregation pipeline
  */
 function graphDescend(connectToField="children", startWith=null, maxElements=25, omitFields=[], maxDepth=100) {
   startWith = startWith ? startWith : connectToField;
