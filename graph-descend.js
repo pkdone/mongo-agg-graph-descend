@@ -29,6 +29,8 @@
  *                                             function to a maximum of 100 because this is the
  *                                             maximum level of nesting supported by MongoDB for 
  *                                             BSON documents
+ * @param {Boolean} [showSchema=false]         [OPTIONAL] Output the field types schema for each
+ *                                             level traversed
  * @return {Object}                            The MongoDB Aggregation JSON expression object which
  *                                             can generate the flattened array for each document,
  *                                             containing nested sub-documents, flowing through an
