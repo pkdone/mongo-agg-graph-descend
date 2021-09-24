@@ -34,7 +34,7 @@
  *                                             containing nested sub-documents, flowing through an
  *                                             aggregation pipeline
  */
-function graphDescend(connectToField="children", startWith=null, maxElements=25, omitFields=[], maxDepth=100) {
+function graphDescend(connectToField="children", startWith=null, maxElements=25, omitFields=[], maxDepth=100, showSchema=false) {
   startWith = startWith ? startWith : connectToField;
   
   return {
@@ -78,6 +78,21 @@ function graphDescend(connectToField="children", startWith=null, maxElements=25,
                             [{"k": "_ord", "v": "$$this"}],
                             [{"k": "_depth", "v": {"$getField": {"field": "_depth", "input": "$$currLevelElement"}}}],
                             [{"k": "_idx", "v": {"$getField": {"field": "_idx", "input": "$$currLevelElement"}}}],
+                            // If showing schema is requried, show the captured schema for this level
+                            {"$cond": [
+                              showSchema,                          
+                              [{"k": "schema", "v": {
+                                "$map": {
+                                  "input": {"$objectToArray": {"$getField": {"field": "subdoc", "input": "$$currLevelElement"}}},
+                                  "as": "field",
+                                  "in": {
+                                    "fieldname": "$$field.k",
+                                    "type": {"$type": "$$field.v"},          
+                                  }
+                                }
+                              }}], 
+                              [],
+                            ]},                                                          
                             {"$map": {
                               "input": {
                                 "$filter": { 

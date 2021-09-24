@@ -131,202 +131,156 @@ db.mydata.insertMany([
         ]        
       } 
     ]
-  }
+  },
+  
+  {
+    "elmntId": "0",
+    "val": "abc",
+    "otherval": false,
+    "properties": [
+      {
+        "elmntId": "0.0",
+        "val": "xyz",
+        "otherval": true,
+        "children": [],
+      } 
+    ]
+  },
 ]);
 ```
 
 ## Define the 'graphDescend' Function
 
-Load the graphDescend() function definition into the MongoDB Shell ready to be used by an aggregation pipeline:
-
-```javascript
-/**
- * Generate an MongoDB Aggregation expression to descend through a document's nested fields
- * collecting each sub-document into a flattened array of elements in the result. Analogous to
- * MongoDB's $graphLookup Aggregation stage, but operating on each self-contained document in
- * isolation rather than linking different documents together. Aka. "flatten document". Most
- * parameters match the parameters for $graphLookup. Currently only supports MongoDB version 5+ due
- * to the use of the new $getField operator. However, for earlier versions of MongoDB you can
- * replace $getField in this function's code with @asya999's getField() function which performs the
- * equivalent, at: https://github.com/asya999/bits-n-pieces/blob/master/scripts/getField.js
- *
- * @param {String} [connectToField="children"] [OPTIONAL] The field in each sub-document which
- *                                             references an array of child sub-documents (if not
- *                                             specified, the functon will assume the child array 
- *                                             field at each level is called 'children')
- * @param {String} [startWith=null]            [OPTIONAL] The field at the top level of the
- *                                             document which references the first array of child
- *                                             sub-documents number (if not specified,
- *                                             connectToField will be used for the top level child
- *                                             array field)
- * @param {Number} [maxElements=25]            [OPTIONAL] The maximum number of sub-documents to
- *                                             flatten (the resulting aggregation expression issues
- *                                             a warning in the aggregation's output if this number
- *                                             isn't sufficient to allow a nested document to be
- *                                             fully descended
- * @param {Array} [omitFields=[]]              [OPTIONAL] The array of fields to omit from each
- *                                             flattened sub-document in the output array
- * @param {Number} [maxDepth=100]              [OPTIONAL] The maximum depth of documents to descend
- *                                             (this value is automatically limited by this
- *                                             function to a maximum of 100 because this is the
- *                                             maximum level of nesting supported by MongoDB for 
- *                                             BSON documents
- * @return {Object}                            The MongoDB Aggregation JSON expression object which
- *                                             can generate the flattened array for each document,
- *                                             containing nested sub-documents, flowing through an
- *                                             aggregation pipeline
- */
-function graphDescend(connectToField="children", startWith=null, maxElements=25, omitFields=[], maxDepth=100) {
-  startWith = startWith ? startWith : connectToField;
-  
-  return {
-    "$let": {
-      "vars": {
-        // MongoDB supports "100 levels of nesting for BSON documents"
-        "maxDepth": {"$cond": [{"$or": [{"$lt": [maxDepth, 0]}, {"$gt": [maxDepth, 100]}]}, 100, maxDepth]},
-      },   
-      "in": {
-        "$reduce": {
-          // Add buffer of 1 level to be able to optionally provide an 'overrun' warning in the result
-          "input": {"$range": [0, {"$add": [maxElements, 1]}]},
-          "initialValue": {
-            // FINAL RESULT TO ACCUMULATE
-            "result": [],        
-
-            // LIST OF SUB-DOCS STILL TO-INSPECT
-            "subLevelsToInspect": [{"_depth": 0, "_idx": "0", "subdoc": "$$ROOT"}],        
-          },
-          "in": {
-          
-            // START: result  (ADD LATEST SUB-DOC TO RESULTS)
-            "result": {
-              "$let": {
-                "vars": { 
-                  "currLevelElement": {"$first": "$$value.subLevelsToInspect"},
-                  "currChildFieldName": {"$cond": [{"$lte": ["$$this", 0]}, startWith, connectToField]},                               
-                },
-                "in": {
-                  "$concatArrays": [
-                    "$$value.result",
-                    {"$cond": [
-                      // Stop accumulating array elements if we have now reached the end of list of nested sub-documents
-                      {"$ifNull": ["$$currLevelElement", false]},
-                      {"$cond": [                     
-                        {"$gte": ["$$this", maxElements]},
-                        [{"WARNING": "The 'maxElements' parameter for graphDescend() was not set to a large enough value to fully descend a nested document"}],
-                        [{"$arrayToObject": [
-                          {"$concatArrays": [
-                            // Build next element in result array using the $graphDescend metadata + the sub-documents fields filtering out unwanted fields
-                            [{"k": "_ord", "v": "$$this"}],
-                            [{"k": "_depth", "v": {"$getField": {"field": "_depth", "input": "$$currLevelElement"}}}],
-                            [{"k": "_idx", "v": {"$getField": {"field": "_idx", "input": "$$currLevelElement"}}}],
-                            {"$map": {
-                              "input": {
-                                "$filter": { 
-                                 "input": {"$objectToArray": {"$getField": {"field": "subdoc", "input": "$$currLevelElement"}}}, 
-                                 "cond": {"$and": [
-                                            {"$ne": ["$$this.k", "$$currChildFieldName"]},
-                                            {"$not": {"$in": ["$$this.k", omitFields]}},
-                                         ]}
-                                }
-                              },
-                              "as": "element",
-                              "in": {"k": "$$element.k", "v": "$$element.v"}
-                            }},
-                          ]}
-                        ]}],                  
-                      ]},                         
-                      [], 
-                    ]},                         
-                  ]
-                }
-              }
-            },
-            // END: result 
-            
-            // START: subLevelsToInspect  (TRIM FIRST ELEMENT JUST INSPECTED AND ADD ANY DIRECT CHILDREN OF THIS ELEMENT TO THE LIST)
-            "subLevelsToInspect": {
-              "$let": {
-                "vars": { 
-                  "subLevelsToInspectSize": {"$size": "$$value.subLevelsToInspect"},
-                  "currLevelChildren": {"$cond": [
-                                         {"$lte": ["$$this", 0]},
-                                         {"$getField": {"field": startWith, "input": {"$getField": {"field": "subdoc", "input": {"$first": "$$value.subLevelsToInspect"}}}}},
-                                         {"$getField": {"field": connectToField, "input": {"$getField": {"field": "subdoc", "input": {"$first": "$$value.subLevelsToInspect"}}}}},
-                                       ]},             
-                  "currLevelIdx": {"$getField": {"field": "_idx", "input": {"$first": "$$value.subLevelsToInspect"}}},
-                  "newDepthNumber": {"$add": [{"$getField": {"field": "_depth", "input": {"$first": "$$value.subLevelsToInspect"}}}, 1]},
-                },
-                "in": {
-                  "$concatArrays": [
-                    // Chop off first element in the list of sub-documents to inspect as this has just been processed
-                    {"$cond": [
-                      {"$gt": ["$$subLevelsToInspectSize", 0]},
-                      {"$slice": ["$$value.subLevelsToInspect", 1, {"$add": ["$$subLevelsToInspectSize", 1]}]},
-                      [],
-                    ]},             
-                    // Push each child array sub-document of current sub-document to the end of the list of sub-documents to inspect
-                    {"$cond": [
-                      {"$and": [{"$isArray": "$$currLevelChildren"}, {"$lte": ["$$newDepthNumber", "$$maxDepth"]}]},
-                      {"$reduce": { 
-                        "input": {"$range": [0, {"$size": "$$currLevelChildren"}]},
-                        "initialValue": [],
-                        "in": {
-                          "$concatArrays": [                            
-                            "$$value",
-                            [{
-                              // Add metadata to the element being added to the list
-                              "_depth": "$$newDepthNumber",
-                              "_idx": {"$concat": ["$$currLevelIdx", "_", {"$toString": "$$this"}]},
-                              // Add the raw subdocument to the element being added to the list
-                              "subdoc": {"$arrayElemAt": ["$$currLevelChildren", "$$this"]}
-                            }],
-                          ]
-                        }
-                      }},                  
-                      [],
-                    ]},             
-                  ]            
-                }
-              }
-            },   
-            // END: subLevelsToInspect 
-            
-          }
-        }
-      }
-    }
-  };
-}
-```
+Load the graphDescend() function definition into the MongoDB Shell ready to be used by an aggregation pipeline. To do this for simple prototyping, copy the contnet of the file `graph-descend.js` from the root of this project into your clipboard and then paste it into the `mongosh` shell, ensuring that the shell accepted this new function with no errors.
 
 
-## Aggregation Pipeline
+## Perform first simple test
 
-Define a single pipeline ready to perform the aggregation:
+Define a single pipeline to perform the aggregation and then execute the pipeline:
 
 ```javascript
 var pipeline = [
   {"$set": {
-    "outputExample1": graphDescend("children", "properties"),
-    "outputExample2": graphDescend("children", "properties", 5),
-    "outputExample3": graphDescend("children", "properties", 25, ["_id", "val"]),
-    "outputExample4": graphDescend("children", "properties", 25, [], 1),
+    "outputExample": graphDescend("children", "properties"),
   }},
 ];
-```
 
-
-## Execution
-
-Execute the aggregation using the defined pipeline and also view its explain plan:
-
-```javascript
 db.mydata.aggregate(pipeline);
 ```
 
+## Perform further tests
+
+Define a pipeline which will test `graphDescend()` with other parameters to see how the behaviour changes and execute it:
+
 ```javascript
-db.mydata.explain("executionStats").aggregate(pipeline);
+var pipeline = [
+  {"$set": {
+    "outputExample1": graphDescend("children", "properties", 5),
+    "outputExample2": graphDescend("children", "properties", 25, ["_id", "val"]),
+    "outputExample3": graphDescend("children", "properties", 25, [], 1),
+  }},
+];
+db.mydata.aggregate(pipeline);
+```
+
+
+## Perform schema analysis
+
+Define a pipeline to use `graphDescend()` to capture the schema for collectionsand execute it:
+
+```javascript
+var pipeline = [
+   // Only sample a subset of docs cos schema analysis may be too slow for very large collections
+   {"$sample": {"size": 100}},
+   
+  // Build array of levels metadata
+  {"$project": {
+    "output": graphDescend("children", "properties", 25, ["_id", "elmntId", "val"], 100, true),
+  }},
+
+  // Unpack each result array member
+  {"$unwind": {
+    "path": "$output.result",
+  }},  
+
+  // Unpack each schema array member
+  {"$unwind": {
+    "path": "$output.result.schema",
+  }},  
+
+  // Group by depth and field name capturing the schema types for each
+  {"$group": {
+    "_id": {"depth": "$output.result._depth", "fieldname": "$output.result.schema.fieldname"},
+    "types": {"$addToSet": "$output.result.schema.type"},
+  }},  
+
+  // Sort by field name
+  {"$sort": {
+    "_id.fieldname": 1,
+  }},     
+
+  // Group by depth capturing arrayy of each fieldname and its types
+  {"$group": {
+    "_id": "$_id.depth",
+    "fields": {"$push": {"fieldname": "$_id.fieldname", "types": "$types"}},
+  }},  
+
+  // Clean up element nams for the final output
+  {"$set": {
+    "depth": "$_id",
+    "schema": "$fields",
+    "_id": "$$REMOVE",
+    "fields": "$$REMOVE",
+  }},  
+
+  // Sort by depth 
+  {"$sort": {
+    "depth": 1,
+  }},     
+];
+db.mydata.aggregate(pipeline);
+```
+
+For the sample data, this should yield the following output:
+
+```
+[
+  {
+    depth: 0,
+    schema: [
+      { fieldname: '_id', types: [ 'objectId' ] },
+      { fieldname: 'elmntId', types: [ 'string' ] },
+      { fieldname: 'otherval', types: [ 'bool' ] },
+      { fieldname: 'properties', types: [ 'array' ] },
+      { fieldname: 'val', types: [ 'int', 'string' ] }
+    ]
+  },
+  {
+    depth: 1,
+    schema: [
+      { fieldname: 'children', types: [ 'array' ] },
+      { fieldname: 'elmntId', types: [ 'string' ] },
+      { fieldname: 'otherval', types: [ 'bool' ] },
+      { fieldname: 'val', types: [ 'string', 'int' ] }
+    ]
+  },
+  {
+    depth: 2,
+    schema: [
+      { fieldname: 'children', types: [ 'null', 'int', 'array', 'object' ] },
+      { fieldname: 'elmntId', types: [ 'string' ] },
+      { fieldname: 'val', types: [ 'int' ] }
+    ]
+  },
+  {
+    depth: 3,
+    schema: [
+      { fieldname: 'children', types: [ 'array', 'string' ] },
+      { fieldname: 'elmntId', types: [ 'string' ] },
+      { fieldname: 'val', types: [ 'int' ] }
+    ]
+  }
+]
 ```
 
 ## TODOs
