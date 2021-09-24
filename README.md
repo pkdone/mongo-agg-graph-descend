@@ -149,12 +149,12 @@ db.mydata.insertMany([
 ]);
 ```
 
-## Define the 'graphDescend' Function
+## Define The 'graphDescend' Function
 
-Load the graphDescend() function definition into the MongoDB Shell ready to be used by an aggregation pipeline. To do this for simple prototyping, copy the contnet of the file `graph-descend.js` from the root of this project into your clipboard and then paste it into the `mongosh` shell, ensuring that the shell accepted this new function with no errors.
+Load the graphDescend() function definition into the MongoDB Shell ready to be used by an aggregation pipeline. To do this for simple prototyping, copy the content of the file `graph-descend.js` from the root of this project into your clipboard and then paste it into the `mongosh` shell, ensuring that the shell accepted this new function with no errors.
 
 
-## Perform first simple test
+## Perform First Simple Test
 
 Define a single pipeline to perform the aggregation and then execute the pipeline:
 
@@ -168,7 +168,7 @@ var pipeline = [
 db.mydata.aggregate(pipeline);
 ```
 
-## Perform further tests
+## Perform Some Other Simple Tests
 
 Define a pipeline which will test `graphDescend()` with other parameters to see how the behaviour changes and execute it:
 
@@ -184,7 +184,7 @@ db.mydata.aggregate(pipeline);
 ```
 
 
-## Perform schema analysis
+## Perform Schema Analysis Example Test
 
 Define a pipeline to use `graphDescend()` to capture the schema for collectionsand execute it:
 
@@ -282,9 +282,11 @@ For the sample data, this should yield the following output:
   }
 ]
 ```
+_NOTE_: This example only descends each document's hierarchy using the name array to descend. To descend through any and all array sub-elements, regardless of their fieldnames, `grephDescend()` would need to be enhanced a little (see _Possible Future Enhancements_ below).
 
-## TODOs
+
+## Possible Future Enhancements
 * Provide an example that works for MongoDB versions before 5.0
 * Implement an optional parameter which is the equivalent of "restrictSearchWithMatch" used in _$graphLookup_
-
+* Provide an optional parameter to indicate to descend through all sub-docuemnt arrays, not just the array fields with the specified fixed name
 
