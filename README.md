@@ -151,7 +151,7 @@ db.mydata.insertMany([
 
 ## Define The 'graphDescend' Function
 
-Load the graphDescend() function definition into the MongoDB Shell ready to be used by an aggregation pipeline. To do this for simple prototyping, copy the content of the file `graph-descend.js` from the root of this project into your clipboard and then paste it into the `mongosh` shell, ensuring that the shell accepted this new function with no errors.
+Load the `graphDescend()` function definition into the MongoDB Shell ready to be used by an aggregation pipeline. To do this for simple prototyping, copy the content of the file `graph-descend.js` from the root of this project into your clipboard and then paste it into the _mongosh_ shell, ensuring that the shell accepted this new function with no errors.
 
 
 ## Perform First Simple Test
@@ -282,7 +282,7 @@ For the sample data, this should yield the following output:
   }
 ]
 ```
-_NOTE_: This example only descends each document's hierarchy via the specifically named array field at each level. To descend through any and all array sub-elements, at each level, regardless of their fieldnames, `grephDescend()` would need to be enhanced a little (see _Possible Future Enhancements_ below).
+__NOTE__: This example only descends each document's hierarchy via the specifically named array field at each level. To descend through any and all array sub-elements, at each level, regardless of their fieldnames, `grephDescend()` would need to be enhanced a little (see _Possible Future Enhancements_ below). Also, you may not want to correlate schemas for sub-documents at the same depth level but appearing in different parts of each document. In this case `grephDescend()` would also need to be modified to store the full "branch path" of each sub-document found, so you can use then this branch path for grouping by, in the pipeline, and displaying in the output.
 
 
 ## Possible Future Enhancements
