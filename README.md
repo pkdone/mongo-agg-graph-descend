@@ -282,11 +282,11 @@ For the sample data, this should yield the following output:
   }
 ]
 ```
-_NOTE_: This example only descends each document's hierarchy using the name array to descend. To descend through any and all array sub-elements, regardless of their fieldnames, `grephDescend()` would need to be enhanced a little (see _Possible Future Enhancements_ below).
+_NOTE_: This example only descends each document's hierarchy via the specifically named array field at each level. To descend through any and all array sub-elements, at each level, regardless of their fieldnames, `grephDescend()` would need to be enhanced a little (see _Possible Future Enhancements_ below).
 
 
 ## Possible Future Enhancements
 * Provide an example that works for MongoDB versions before 5.0
 * Implement an optional parameter which is the equivalent of "restrictSearchWithMatch" used in _$graphLookup_
-* Provide an optional parameter to indicate to descend through all sub-docuemnt arrays, not just the array fields with the specified fixed name
+* Provide an optional parameter to indicate to descend through all sub-document arrays, not just the array fields with the specified fixed name
 
