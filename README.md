@@ -151,7 +151,7 @@ db.mydata.insertMany([
 
 ## Define The 'graphDescend' Function
 
-Load the `graphDescend()` [function definition](blob/main/graph-descend.js) into the MongoDB Shell ready to be used by an aggregation pipeline. To do this for simple prototyping, copy the content of the file `graph-descend.js` from the root of this project into your clipboard and then paste it into the _mongosh_ shell, ensuring that the shell accepted this new function with no errors (or use the MongoDB Shell's `load()` command).
+Load the `graphDescend()` [function definition](graph-descend.js) into the MongoDB Shell ready to be used by an aggregation pipeline. To do this for simple prototyping, copy the content of the file `graph-descend.js` from the root of this project into your clipboard and then paste it into the _mongosh_ shell, ensuring that the shell accepted this new function with no errors (or use the MongoDB Shell's `load()` command).
 
 
 ## Perform First Simple Test
