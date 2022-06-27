@@ -186,6 +186,8 @@ db.mydata.aggregate(pipeline);
 
 ## Perform Schema Analysis Example Test
 
+> Note, see a separate project, [mongo-agg-schema-analyzer](https://github.com/pkdone/mongo-agg-schema-analyzer), for a more comprehensive schema analysis tool using MongoDB Aggregations.
+
 Define a pipeline to use `graphDescend()` to capture the schema for collectionsand execute it:
 
 ```javascript
@@ -288,5 +290,4 @@ __NOTE__: This example only descends each document's hierarchy via the specifica
 ## Possible Future Enhancements
 * Provide an example that works for MongoDB versions before 5.0
 * Implement an optional parameter which is the equivalent of "restrictSearchWithMatch" used in _$graphLookup_
-* Provide an optional parameter to indicate to descend through all sub-document arrays, not just the array fields with the specified fixed name
 
